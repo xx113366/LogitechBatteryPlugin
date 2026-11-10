@@ -1,0 +1,35 @@
+# Third-party source artwork is intentionally NOT distributed in this repo.
+# The generated mask data in src/mouse_icon_data.* is committed instead.
+assets/*.png
+
+# Build output (the DLL is attached to GitHub Releases instead)
+build/
+dist/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+*.vcxproj*
+*.sln
+
+# Local toolchains / scratch references
+tools/
+ref/
+
+# Compiled binaries and logs
+*.exe
+*.dll
+*.lib
+*.obj
+*.pdb
+*.ilk
+*.exp
+*.log
+*.bmp
+*.zip
+
+# Editor / OS
+.vs/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
