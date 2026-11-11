@@ -16,7 +16,7 @@ namespace optsdlg {
     struct Values {
         int  mouse_scale = 100;      // 鼠标图标大小（%）
         int  mouse_gap = 8;          // 鼠标与电池的留白（px @96 DPI）
-        int  display_mode = 0;       // 0 仅图标 / 1 图标+数字 / 2 纯文字
+        int  display_mode = 0;       // 0 仅图标 / 1 图标+右侧数字 / 2 纯文字 / 3 电池内百分比
         int  icon_style = 0;         // 见 icon::Style
         int  device_count = 1;       // 显示几个设备项目
         int  preview_percent = 72;   // 预览用的示例电量（实际取当前设备读数）

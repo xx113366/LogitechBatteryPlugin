@@ -51,7 +51,7 @@ private:
     int          m_percent = -1;
     bool         m_charging = false;
     bool         m_valid = false;
-    int          m_display_mode = 0;    // 0=纯图标 1=图标+百分比 2=纯文字
+    int          m_display_mode = 0;    // 0=纯图标 1=图标+数字 2=纯文字 3=电池内百分比
     int          m_icon_style = 0;      // 见 icon::Style
     int          m_mouse_gap = 8;       // 鼠标与电池之间的留白（px @96 DPI）
     int          m_mouse_scale = 100;   // 鼠标图标大小（%，100 = 14.5 px 高）
@@ -102,7 +102,7 @@ private:
         int  device_count = 1;           // 暴露几个显示项目
         int  warn_threshold = 10;        // 低电量提示阈值（%）
         int  warn_cooldown = 21600;      // 低电量提示冷却（秒）
-        int  display_mode = 0;           // 0=纯图标 1=图标+百分比 2=纯文字
+        int  display_mode = 0;           // 0=纯图标 1=图标+数字 2=纯文字 3=电池内百分比
         int  icon_style = 0;             // 0=鼠标+电池 1=鼠标造型电池
         int  mouse_gap = 8;              // 鼠标与电池之间的留白（px @96 DPI）
         int  mouse_scale = 100;          // 鼠标图标大小（%，50~150）

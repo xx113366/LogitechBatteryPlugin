@@ -39,6 +39,17 @@ namespace {
     const wchar_t* const kHintApplied =
         L"已应用到任务栏。可继续调整，或点「确定」保存并关闭。";
 
+    // 下拉顺序与 display_mode 数值解耦：把新的「电池内数字」排到更顺手的位置，
+    // 同时保持 0/1/2 的旧语义不变（老配置文件不会串档）。
+    constexpr int kModeValues[4] = { 0, 3, 1, 2 };
+    int ModeFromIndex(int idx) {
+        return (idx >= 0 && idx < 4) ? kModeValues[idx] : 0;
+    }
+    int IndexFromMode(int mode) {
+        for (int i = 0; i < 4; ++i) if (kModeValues[i] == mode) return i;
+        return 0;
+    }
+
     RECT RectOf(int l, int t, int r, int b) { return RECT{ l, t, r, b }; }
     RECT PreviewLight() { return RectOf(16, 32, 454, 74); }
     RECT PreviewDark()  { return RectOf(16, 74, 454, 116); }
@@ -108,7 +119,7 @@ namespace {
     void ReadControls(Context* c) {
         c->v.mouse_scale = (int)SendMessageW(c->h_size, TBM_GETPOS, 0, 0);
         c->v.mouse_gap = (int)SendMessageW(c->h_gap, TBM_GETPOS, 0, 0);
-        c->v.display_mode = (int)SendMessageW(c->h_mode, CB_GETCURSEL, 0, 0);
+        c->v.display_mode = ModeFromIndex((int)SendMessageW(c->h_mode, CB_GETCURSEL, 0, 0));
         c->v.icon_style = (int)SendMessageW(c->h_style, CB_GETCURSEL, 0, 0);
         c->v.device_count = (int)SendMessageW(c->h_count, CB_GETCURSEL, 0, 0) + 1;
     }
@@ -148,6 +159,7 @@ namespace {
         o.mouse_scale = v.mouse_scale / 100.f;
         o.style = v.icon_style;
         o.show_text = (v.display_mode == 1);
+        o.number_inside = (v.display_mode == 3);
         icon::Status st;
         st.percent = v.preview_percent;
         st.valid = true;
@@ -210,9 +222,10 @@ namespace {
             c->h_mode = AddCtl(c, L"COMBOBOX", L"", CBS_DROPDOWNLIST | WS_VSCROLL,
                                92, 190, 362, 100, ID_MODE);
             AddComboItem(c->h_mode, L"仅图标（任务栏上无文字）");
-            AddComboItem(c->h_mode, L"图标 + 百分比数字");
+            AddComboItem(c->h_mode, L"电池内显示百分比（电池自动加宽）");
+            AddComboItem(c->h_mode, L"图标右侧显示百分比");
             AddComboItem(c->h_mode, L"纯文字（标签 + 数值）");
-            SendMessageW(c->h_mode, CB_SETCURSEL, (WPARAM)c->v.display_mode, 0);
+            SendMessageW(c->h_mode, CB_SETCURSEL, (WPARAM)IndexFromMode(c->v.display_mode), 0);
 
             AddCtl(c, L"STATIC", L"图标样式", SS_LEFT, 16, 224, 72, 20, 0);
             c->h_style = AddCtl(c, L"COMBOBOX", L"", CBS_DROPDOWNLIST | WS_VSCROLL,
@@ -270,7 +283,7 @@ namespace {
             const int id = LOWORD(w);
             const int code = HIWORD(w);
             if (id == ID_MODE && code == CBN_SELCHANGE) {
-                c->v.display_mode = (int)SendMessageW(c->h_mode, CB_GETCURSEL, 0, 0);
+                c->v.display_mode = ModeFromIndex((int)SendMessageW(c->h_mode, CB_GETCURSEL, 0, 0));
                 RestoreHint(c);
                 InvalidatePreview(h);
             } else if (id == ID_STYLE && code == CBN_SELCHANGE) {

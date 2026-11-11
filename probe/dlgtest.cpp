@@ -81,6 +81,15 @@ int main() {
     HWND tb_gap = GetDlgItem(w, 102);
     HWND cb_mode = GetDlgItem(w, 103);
 
+    // 额外截一张「电池内显示百分比」模式，用来展示新选项
+    SendMessageW(cb_mode, CB_SETCURSEL, 1, 0);   // index 1 -> display_mode 3
+    PostMessageW(w, WM_COMMAND, MAKEWPARAM(103, CBN_SELCHANGE), (LPARAM)cb_mode);
+    Sleep(300);
+    Shot(w, L"build/options_dialog_inside.png");
+    SendMessageW(cb_mode, CB_SETCURSEL, 0, 0);
+    PostMessageW(w, WM_COMMAND, MAKEWPARAM(103, CBN_SELCHANGE), (LPARAM)cb_mode);
+    Sleep(150);
+
     auto apply = [&](int scale, int gap, int mode) {
         SendMessageW(tb_size, TBM_SETPOS, (WPARAM)TRUE, scale);
         PostMessageW(w, WM_HSCROLL, 0, (LPARAM)tb_size);

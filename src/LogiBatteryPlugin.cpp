@@ -15,7 +15,7 @@ namespace {
     const wchar_t* const kPluginName = L"罗技设备电量";
     const wchar_t* const kPluginDesc = L"显示罗技鼠标/键盘的电池电量（通过 HID++ 协议读取）";
     const wchar_t* const kPluginAuthor = L"xb615381";
-    const wchar_t* const kPluginVersion = L"1.2.0";
+    const wchar_t* const kPluginVersion = L"1.3.0";
     const wchar_t* const kPluginUrl = L"https://github.com/xb615381/LogitechBatteryPlugin";
 
     const wchar_t* const kItemName[3] = { L"罗技设备1电量", L"罗技设备2电量", L"罗技设备3电量" };
@@ -152,6 +152,7 @@ icon::Options CLogiBatteryItem::IconOptions() const {
     icon::Options o;
     o.style = m_icon_style;
     o.show_text = (m_display_mode == 1);
+    o.number_inside = (m_display_mode == 3);
     o.gap = m_mouse_gap;
     o.mouse_scale = m_mouse_scale / 100.f;
     return o;
@@ -267,8 +268,9 @@ void CLogiBatteryPlugin::SaveDefaultConfig() const {
         L"; 本文件供高级配置；改完保存几秒内自动生效，不需要重启 TrafficMonitor\n"
         L"[general]\n"
         L"; 显示模式：0=仅图标（默认，鼠标+电池，任务栏上没有任何文字）\n"
-        L";          1=图标 + 百分比数字\n"
+        L";          1=图标 + 右侧百分比数字\n"
         L";          2=纯文字（标签 + 数值，退回主程序绘制）\n"
+        L";          3=百分比直接显示在电池内部（电池会自动加宽）\n"
         L"display_mode=0\n"
         L"; 图标样式：0=鼠标图标 + 横向电池（默认）\n"
         L";          1=鼠标造型电池，电量自下而上填充\n"
@@ -325,7 +327,7 @@ void CLogiBatteryPlugin::EnsureConfigKeys() const {
 
     struct Def { const char* key; const wchar_t* block; };
     static const Def defs[] = {
-        { "display_mode=", L"; 显示模式：0=仅图标（默认，任务栏无文字） 1=图标+百分比 2=纯文字\ndisplay_mode=0\n" },
+        { "display_mode=", L"; 显示模式：0=仅图标 1=图标+右侧数字 2=纯文字 3=电池内显示百分比\ndisplay_mode=0\n" },
         { "icon_style=",   L"; 图标样式：0=鼠标图标+横向电池 1=鼠标造型电池\nicon_style=0\n" },
         { "mouse_gap=",    L"; 鼠标图标与电池之间的留白（像素，8 约等于一个空格，范围 0~32）\nmouse_gap=8\n" },
         { "mouse_scale=",  L"; 鼠标图标大小（%，100 = 默认 14.5 px 高，范围 50~150）\nmouse_scale=100\n" },
@@ -376,7 +378,7 @@ void CLogiBatteryPlugin::LoadConfig() {
     wchar_t mode_key[32] = {};
     GetPrivateProfileStringW(L"general", L"display_mode", L"", mode_key, 32, path.c_str());
     m_config.display_mode = (mode_key[0] == L'\0')
-                          ? 0 : ClampInt(get_int(L"display_mode", 0), 0, 2);
+                          ? 0 : ClampInt(get_int(L"display_mode", 0), 0, 3);
     m_config.icon_style = ClampInt(get_int(L"icon_style", 0), 0, 1);
     m_config.mouse_gap = ClampInt(get_int(L"mouse_gap", 8), 0, 32);
     m_config.mouse_scale = ClampInt(get_int(L"mouse_scale", 100), 50, 150);

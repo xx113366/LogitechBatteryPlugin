@@ -146,10 +146,34 @@ namespace {
         }
     }
 
+    // 电池内百分比：文字用主题色，描边取反色。
+    // 这样浅色主题是「黑字+白描边」、深色主题是「白字+黑描边」，
+    // 无论压在绿色/红色填充上还是落在空电池区域都清晰。
+    void DrawBatteryNumber(Gdiplus::Graphics& g, const Gdiplus::RectF& box,
+                           const wchar_t* text, float s, Gdiplus::Color ink) {
+        Gdiplus::FontFamily family(L"Segoe UI");
+        Gdiplus::GraphicsPath path;
+        Gdiplus::StringFormat sf;
+        sf.SetAlignment(Gdiplus::StringAlignmentCenter);
+        sf.SetLineAlignment(Gdiplus::StringAlignmentCenter);
+        if (path.AddString(text, -1, &family, Gdiplus::FontStyleBold,
+                           7.6f * s, box, &sf) != Gdiplus::Ok) return;
+        const int lum = (ink.GetR() * 299 + ink.GetG() * 587 + ink.GetB() * 114) / 1000;
+        Gdiplus::Color edge_col = (lum > 128)
+            ? Gdiplus::Color(190, 0, 0, 0)          // 亮色文字 → 深色描边
+            : Gdiplus::Color(190, 255, 255, 255);   // 暗色文字 → 亮色描边
+        Gdiplus::SolidBrush fill(ink);
+        Gdiplus::Pen edge(edge_col, 0.9f * s);
+        edge.SetLineJoin(Gdiplus::LineJoinRound);
+        // 先描边再填字：描边在底层，不会侵蚀笔画，浅色主题下细笔画才不发灰
+        g.DrawPath(&edge, &path);
+        g.FillPath(&fill, &path);
+    }
+
     // style 0：用户鼠标图标 + 留白 + 横向电池
     void DrawMouseAndBattery(Gdiplus::Graphics& g, float left, float cy, float s,
                              Gdiplus::Color ink, const Status& st, float gap,
-                             float mouse_scale) {
+                             float mouse_scale, bool number_inside) {
         Gdiplus::Pen pen(ink, 1.15f * s);
         pen.SetLineJoin(Gdiplus::LineJoinRound);
         pen.SetStartCap(Gdiplus::LineCapRound);
@@ -158,7 +182,9 @@ namespace {
 
         const float mh = 14.5f * s * mouse_scale;   // 默认略高于电池（11*s），比上一版 13*s 放大一点
         const float mw = mh * (float)kMouseW / (float)kMouseH;   // 保持原图宽高比
-        const float bw = 18.f * s, bh = 11.f * s;
+        // 电池内要放数字就得加宽加高，否则 18*11 的空间塞不下「100%+」
+        const float bw = (number_inside ? 34.f : 18.f) * s;
+        const float bh = (number_inside ? 12.f : 11.f) * s;
         const float cap_w = 2.4f * s, cap_h = 5.f * s;
 
         const float mx = left + 1.5f * s;
@@ -194,8 +220,19 @@ namespace {
         }
 
         const Gdiplus::RectF box(bx, by, bw, bh);
-        if (st.charging) DrawBolt(g, bx + bw * 0.47f, by + bh / 2.f, s, ink);
-        else if (!st.valid) DrawUnknown(g, box, s, ink);
+        if (number_inside) {
+            wchar_t txt[16] = {};
+            if (!st.valid || st.percent < 0)
+                swprintf_s(txt, L"?");
+            else
+                swprintf_s(txt, L"%d%%%s",
+                           (std::min)(100, (std::max)(0, st.percent)),
+                           st.charging ? L"+" : L"");
+            DrawBatteryNumber(g, box, txt, s, ink);
+        } else {
+            if (st.charging) DrawBolt(g, bx + bw * 0.47f, by + bh / 2.f, s, ink);
+            else if (!st.valid) DrawUnknown(g, box, s, ink);
+        }
     }
 
     // style 1：鼠标造型的电池，电量自下而上填充
@@ -277,7 +314,8 @@ namespace {
             w = 22.f;
         } else {
             const float mouse_w = 14.5f * opt.mouse_scale * (float)kMouseW / (float)kMouseH;
-            w = std::ceil(1.5f + mouse_w + (float)opt.gap + 18.f + 2.4f + 1.5f);
+            const float battery_w = opt.number_inside ? 34.f : 18.f;
+            w = std::ceil(1.5f + mouse_w + (float)opt.gap + battery_w + 2.4f + 1.5f);
         }
         if (opt.show_text) w += 36.f;
         return (int)w;
@@ -319,7 +357,7 @@ namespace {
             DrawMouseShapedBattery(g, left, cy, s, ink, status);
         else
             DrawMouseAndBattery(g, left, cy, s, ink, status,
-                                (float)opt.gap, opt.mouse_scale);
+                                (float)opt.gap, opt.mouse_scale, opt.number_inside);
 
         // 可选的百分比文字（默认关闭）
         if (opt.show_text && status.text && *status.text) {

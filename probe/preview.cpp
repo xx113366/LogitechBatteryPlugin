@@ -18,6 +18,7 @@ struct Case {
     int style;
     bool show_text;
     const wchar_t* text;
+    bool inside = false;      // 百分比显示在电池内部
 };
 
 int main() {
@@ -53,7 +54,7 @@ int main() {
 
     g.DrawString(L"TrafficMonitor · 罗技鼠标电量图标", -1, &title,
                  RectF(24.f, 12.f, 600.f, 30.f), &sf, &ink_light);
-    g.DrawString(L"第一行：鼠标图标 + 留白 + 横向电池（默认）  ·  第二行：鼠标造型电池 / 图标+数值  ·  充电叠加闪电，低电量自动变色", -1, &sub,
+    g.DrawString(L"第一行：默认图标的电量状态  ·  第二行：多种数字显示方式（电池内 / 右侧 / 造型电池）  ·  充电叠加闪电，低电量自动变色", -1, &sub,
                  RectF(24.f, 42.f, 860.f, 20.f), &sf, &ink_light);
 
     const Case cases[] = {
@@ -65,12 +66,12 @@ int main() {
         { L"未读取到数据",       -1, false, false, 0, false, L"" },
     };
     const Case cases2[] = {
-        { L"鼠标造型 100%",     100, false, true,  1, false, L"" },
-        { L"鼠标造型 72%",       72, false, true,  1, false, L"" },
+        { L"电池内 76%",         76, false, true,  0, false, L"", true },
+        { L"电池内 充电 60%+",   60, true,  true,  0, false, L"", true },
+        { L"电池内 低电量 9%",    9, false, true,  0, false, L"", true },
+        { L"图标右侧 72%",       72, false, true,  0, true,  L"72%" },
+        { L"鼠标造型电池 100%", 100, false, true,  1, false, L"" },
         { L"鼠标造型 充电中",    60, true,  true,  1, false, L"" },
-        { L"鼠标造型 低电量",     9, false, true,  1, false, L"" },
-        { L"图标 + 百分比",      72, false, true,  0, true,  L"72%" },
-        { L"图标 + 充电数值",    60, true,  true,  0, true,  L"60%+" },
     };
 
     auto row = [&](const Case* list, float y0, bool on_dark, float scale, bool captions) {
@@ -82,6 +83,7 @@ int main() {
             icon::Options opt;
             opt.style = c.style;
             opt.show_text = c.show_text;
+            opt.number_inside = c.inside;
             icon::Status st;
             st.percent = c.percent;
             st.charging = c.charging;
@@ -125,6 +127,11 @@ int main() {
         icon::Draw(g, 450.f + i * 62.f, 432.f, 56.f, 36.f, 1.f,
                    RGB(235, 235, 235), true, st, opt);
     }
+    // 电池内数字的 1:1 效果
+    icon::Options in; in.style = 0; in.number_inside = true;
+    icon::Status st2; st2.percent = 76; st2.valid = true; st2.text = L"";
+    icon::Draw(g, 706.f, 432.f, 72.f, 36.f, 1.f,
+               RGB(235, 235, 235), true, st2, in);
 
     Status s = bmp.Save(L"build/icon_preview.png", &kPngEncoder, nullptr);
     printf("preview saved: %s (status=%d)\n", s == Ok ? "ok" : "FAILED", (int)s);

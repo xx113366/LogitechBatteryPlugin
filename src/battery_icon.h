@@ -23,6 +23,7 @@ namespace icon {
     struct Options {
         int  style = kMouseAndBattery;
         bool show_text = false;     // 图标右侧附带百分比文字（默认关闭）
+        bool number_inside = false; // 直接在电池内部画百分比（电池会自动加宽）
         int  gap = 8;               // 鼠标与电池之间的留白（96 DPI 下的像素，约一个空格）
         float mouse_scale = 1.0f;   // 鼠标图标缩放系数（1.0 = 14.5 px 高）
     };
