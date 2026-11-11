@@ -1,3 +1,7 @@
+# Never commit credentials if a token file is placed inside the project
+.github_token
+*token*.txt
+
 # Third-party source artwork is intentionally NOT distributed in this repo.
 # The generated mask data in src/mouse_icon_data.* is committed instead.
 assets/*.png
