@@ -14,9 +14,9 @@ namespace {
 
     const wchar_t* const kPluginName = L"罗技设备电量";
     const wchar_t* const kPluginDesc = L"显示罗技鼠标/键盘的电池电量（通过 HID++ 协议读取）";
-    const wchar_t* const kPluginAuthor = L"xb615381";
+    const wchar_t* const kPluginAuthor = L"xx113366";
     const wchar_t* const kPluginVersion = L"1.3.0";
-    const wchar_t* const kPluginUrl = L"https://github.com/xb615381/LogitechBatteryPlugin";
+    const wchar_t* const kPluginUrl = L"https://github.com/xx113366/LogitechBatteryPlugin";
 
     const wchar_t* const kItemName[3] = { L"罗技设备1电量", L"罗技设备2电量", L"罗技设备3电量" };
     const wchar_t* const kItemId[3] = { L"LogiBattery1", L"LogiBattery2", L"LogiBattery3" };
