@@ -222,7 +222,7 @@ namespace {
             c->h_mode = AddCtl(c, L"COMBOBOX", L"", CBS_DROPDOWNLIST | WS_VSCROLL,
                                92, 190, 362, 100, ID_MODE);
             AddComboItem(c->h_mode, L"仅图标（任务栏上无文字）");
-            AddComboItem(c->h_mode, L"电池内显示百分比（电池自动加宽）");
+            AddComboItem(c->h_mode, L"电池内显示电量数值（纯数字，无 % 号）");
             AddComboItem(c->h_mode, L"图标右侧显示百分比");
             AddComboItem(c->h_mode, L"纯文字（标签 + 数值）");
             SendMessageW(c->h_mode, CB_SETCURSEL, (WPARAM)IndexFromMode(c->v.display_mode), 0);

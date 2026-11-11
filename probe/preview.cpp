@@ -66,9 +66,9 @@ int main() {
         { L"未读取到数据",       -1, false, false, 0, false, L"" },
     };
     const Case cases2[] = {
-        { L"电池内 76%",         76, false, true,  0, false, L"", true },
-        { L"电池内 充电 60%+",   60, true,  true,  0, false, L"", true },
-        { L"电池内 低电量 9%",    9, false, true,  0, false, L"", true },
+        { L"电池内 76",          76, false, true,  0, false, L"", true },
+        { L"电池内 100+（最宽）", 100, true, true, 0, false, L"", true },
+        { L"电池内 低电量 9",     9, false, true,  0, false, L"", true },
         { L"图标右侧 72%",       72, false, true,  0, true,  L"72%" },
         { L"鼠标造型电池 100%", 100, false, true,  1, false, L"" },
         { L"鼠标造型 充电中",    60, true,  true,  1, false, L"" },

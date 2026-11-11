@@ -327,7 +327,7 @@ void CLogiBatteryPlugin::EnsureConfigKeys() const {
 
     struct Def { const char* key; const wchar_t* block; };
     static const Def defs[] = {
-        { "display_mode=", L"; 显示模式：0=仅图标 1=图标+右侧数字 2=纯文字 3=电池内显示百分比\ndisplay_mode=0\n" },
+        { "display_mode=", L"; 显示模式：0=仅图标 1=图标+右侧数字 2=纯文字 3=电池内显示电量数值\ndisplay_mode=0\n" },
         { "icon_style=",   L"; 图标样式：0=鼠标图标+横向电池 1=鼠标造型电池\nicon_style=0\n" },
         { "mouse_gap=",    L"; 鼠标图标与电池之间的留白（像素，8 约等于一个空格，范围 0~32）\nmouse_gap=8\n" },
         { "mouse_scale=",  L"; 鼠标图标大小（%，100 = 默认 14.5 px 高，范围 50~150）\nmouse_scale=100\n" },
