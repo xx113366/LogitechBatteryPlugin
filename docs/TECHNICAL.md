@@ -210,6 +210,8 @@ docs/options_dialog_inside.png   设置窗口：电池内数字模式
 - `display_mode=3` 时电池从 `18×11` 变为 `24×13`（单位 `s`），用 `GraphicsPath::AddString` 画居中的粗体**纯数字**（不带 `%`，省字符换更大的字号）。字号按 `wcslen(text)` 自适应：1~2 位 `9.5*s`、3 位 `8.6*s`、4 位（`100+`）`7.4*s`，描边宽度也随之取 `em*0.085`，避免极端情况把 `+` 裁掉。文字取主题色 `ink`，描边按 `ink` 亮度取反色（浅色主题黑字白边 / 深色主题白字黑边）；**先 `DrawPath` 描边、再 `FillPath` 填字**，否则描边会压在笔画上让细字发灰。充电时文字追加 `+`，无数据显示 `?`，并且不再画闪电/问号避免拥挤；`BaseWidth()` 会同步把电池宽度算进去
 - 宽度由 `GetItemWidth()`（96 DPI 基准，主程序放大）和 `GetItemWidthEx()`（实际像素）共同给出；`Draw()` 还会按传入的 `w`/`h` 自适应缩放，主程序用逻辑坐标还是物理坐标都不会被裁切
 - GDI+ 首次使用时才初始化（函数内静态对象），**不在 `DllMain` 里调用**，避免 loader lock 问题；万一初始化失败会退化成 GDI 画的简版电池
+- **主程序会缓存项目宽度**：TrafficMonitor 在 `CTaskBarDlg::CalculateWindowSize()` 里通过 `GetItemWidth/Ex` 算好 `m_item_widths`，之后 `DrawPluginItem` 把缓存的 `rect.Width()` 传给 `DrawItem`；这个重算只在主程序 `ApplySettings()` 时发生。所以插件改大 `mouse_gap` 后，绘制区宽度不会立刻跟着变。若 `Draw()` 直接用 `need = BaseWidth(opt)*s > w` 就整体缩小 `s`，鼠标会被压到 10px 以下、线条断裂（视觉上像"显示不完全"）
+- 因此 `Draw()` 会先把 `w / scale` 换算成 96 DPI 基准宽度 `w_base`：只有 `BaseWidth(opt) > w_base`（按 1:1 都放不下）时，才把超出的量从**纯留白 `gap`** 里扣掉，构造 `draw_opt` 用于绘制；随后仍保留 `need > w` 的整体缩放兜底。这样鼠标和电池尺寸恒定，而主程序给足宽度（例如重启后重新测量）时用户设的间距完全生效。`probe/gapscan.cpp` 可扫描 0~24 全部间距验证三种宽度场景
 
 ### 设置窗口是怎么实现的
 
@@ -304,7 +306,8 @@ DLL 位数和主程序不一致，或 DLL 放错目录（必须是主程序目�
 - `gdi_diag.cpp` 校验 GDI+ 填充是否真的写入 DIB / DDB 内存 DC
 - `make_mouse_icon.cpp` 把 PNG 转成 `src/mouse_icon_data.*`，换图标时用它
 - `zoom.cpp` 把任务栏截图按最近邻放大，用来检查 1:1 尺寸下的线条粗细
-- `dlgtest.cpp` 自动弹出设置窗口、模拟调滑块、截图并点「确定」，校验 ini 写入与即时生效
+- `dlgtest.cpp` 自动弹出设置窗口、模拟调滑块、截图并点「应用」/「取消」，校验 ini 写入与即时生效
+- `gapscan.cpp` 扫描 `mouse_gap` 0~24 在三种绘制区宽度下的渲染拼图，专门回归「改间距导致图标被缩小」的问题
 
 编译示例：
 

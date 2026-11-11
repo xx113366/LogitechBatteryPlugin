@@ -343,7 +343,19 @@ namespace {
         float cap_s = (scale > 0.f ? scale : 1.f) * 1.5f;
         if (cap_s < 1.f) cap_s = 1.f;
         if (s > cap_s) s = cap_s;
-        float need = BaseWidth(opt) * s;
+        // TrafficMonitor 会缓存插件项宽度（只在自己 ApplySettings 时重算），
+        // 所以插件改大 mouse_gap 后传进来的 w 可能仍是旧值。此时若直接整体缩小，
+        // 鼠标会跟着被压到 10px 以下、线条断掉，看起来像「显示不完全」。
+        // 优先压缩纯留白 gap 来适配宽度，保住鼠标和电池的实际尺寸。
+        Options draw_opt = opt;
+        // 把可用宽度换算回 96 DPI 基准，只有「按 1:1 都放不下当前间距」时才压缩 gap；
+        // 否则主程序正常给足宽度时会误把用户设的间距也吃掉。
+        const float w_base = w / (scale > 0.f ? scale : 1.f);
+        if (w_base > 0.f && (float)BaseWidth(opt) > w_base) {
+            const float excess = (float)BaseWidth(opt) - w_base;
+            draw_opt.gap = (int)std::ceil((std::max)(0.f, (float)opt.gap - excess));
+        }
+        float need = (float)BaseWidth(draw_opt) * s;
         if (need > w && need > 0.f) s *= w / need;
         if (s < 0.45f) s = 0.45f;
 
@@ -352,7 +364,7 @@ namespace {
         g.SetPixelOffsetMode(Gdiplus::PixelOffsetModeHighQuality);
         g.SetTextRenderingHint(Gdiplus::TextRenderingHintClearTypeGridFit);
 
-        float content_w = BaseWidth(opt) * s;
+        float content_w = (float)BaseWidth(draw_opt) * s;
         float left = x + (w - content_w) / 2.f;
         float cy = y + h / 2.f;
 
@@ -360,12 +372,12 @@ namespace {
             DrawMouseShapedBattery(g, left, cy, s, ink, status);
         else
             DrawMouseAndBattery(g, left, cy, s, ink, status,
-                                (float)opt.gap, opt.mouse_scale, opt.number_inside);
+                                (float)draw_opt.gap, opt.mouse_scale, opt.number_inside);
 
         // 可选的百分比文字（默认关闭）
         if (opt.show_text && status.text && *status.text) {
             float text_w = 36.f * s;
-            float tx = left + (float)(BaseWidth(opt) - 36) * s;
+            float tx = left + (float)(BaseWidth(draw_opt) - 36) * s;
             Gdiplus::Font font(L"Segoe UI", 9.f * s, Gdiplus::FontStyleRegular,
                                Gdiplus::UnitPixel);
             Gdiplus::SolidBrush br(ink);
